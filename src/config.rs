@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
-use bitflags::bitflags;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use bitflags::{bitflags, bitflags_match};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode};
 use directories::ProjectDirs;
 use ratatui::{
     layout::Constraint,
@@ -354,6 +354,85 @@ struct Binding {
     modifiers: KeyModifiers,
 }
 
+impl ToString for Binding {
+    fn to_string(&self) -> String {
+        /// converts a string to a the vim style for spelled out keys
+        ///
+        /// ie: string => "\<string\>"
+        macro_rules! vim_string {
+            ($key:expr) => {
+                format!("<{}>", $key).as_str()
+            };
+        }
+        /// adds a string in vim style to given base string
+        macro_rules! add_key {
+            ($base:expr, $key:expr) => {
+                $base.push_str(vim_string!($key))
+            };
+        }
+
+        let mut output = String::with_capacity(10);
+
+        bitflags_match!(self.modifiers, {
+            KeyModifiers::CONTROL => output.push_str("CTRL-"),
+            KeyModifiers::META => output.push_str("META-"),
+            KeyModifiers::ALT => output.push_str("ALT-"),
+            KeyModifiers::HYPER => output.push_str("HYP-"),
+            KeyModifiers::SUPER => output.push_str("SUP-"),
+            _ => ()
+        });
+
+        match self.code {
+            KeyCode::Null | KeyCode::Modifier(_) => (), // modifier should be covered by above
+            KeyCode::Char(c) => output.push(c),
+            KeyCode::F(n) => {
+                output.push('F');
+                output.push(char::from(n));
+            }
+            KeyCode::Media(media_key) => match media_key {
+                MediaKeyCode::Play => add_key!(output, "Play"),
+                MediaKeyCode::Pause => add_key!(output, "Pause"),
+                MediaKeyCode::PlayPause => add_key!(output, "Play Pause"),
+                MediaKeyCode::Reverse => add_key!(output, "Reverse"),
+                MediaKeyCode::Stop => add_key!(output, "Stop"),
+                MediaKeyCode::FastForward => add_key!(output, "Fast Forward"),
+                MediaKeyCode::Rewind => add_key!(output, "Rewind"),
+                MediaKeyCode::TrackNext => add_key!(output, "Track Next"),
+                MediaKeyCode::TrackPrevious => add_key!(output, "Track Previous"),
+                MediaKeyCode::Record => add_key!(output, "Record"),
+                MediaKeyCode::LowerVolume => add_key!(output, "Lower Volume"),
+                MediaKeyCode::RaiseVolume => add_key!(output, "Raise Volume"),
+                MediaKeyCode::MuteVolume => add_key!(output, "Mute Volume"),
+            },
+
+            KeyCode::BackTab => add_key!(output, "Back Tab"),
+            KeyCode::Backspace => add_key!(output, "Backspace"),
+            KeyCode::CapsLock => add_key!(output, "CapsLock"),
+            KeyCode::Delete => add_key!(output, "Delete"),
+            KeyCode::Down => add_key!(output, "Down"),
+            KeyCode::End => add_key!(output, "End"),
+            KeyCode::Enter => add_key!(output, "Enter"),
+            KeyCode::Esc => add_key!(output, "Esc"),
+            KeyCode::Home => add_key!(output, "Home"),
+            KeyCode::Insert => add_key!(output, "Insert"),
+            KeyCode::KeypadBegin => add_key!(output, "Keypad Begin"),
+            KeyCode::Left => add_key!(output, "Left"),
+            KeyCode::Menu => add_key!(output, "Menu"),
+            KeyCode::NumLock => add_key!(output, "NumLock"),
+            KeyCode::PageDown => add_key!(output, "Page Down"),
+            KeyCode::PageUp => add_key!(output, "Page Up"),
+            KeyCode::Pause => add_key!(output, "Pause"),
+            KeyCode::PrintScreen => add_key!(output, "Print Screen"),
+            KeyCode::Right => add_key!(output, "Right"),
+            KeyCode::ScrollLock => add_key!(output, "Scroll Lock"),
+            KeyCode::Tab => add_key!(output, "Tab"),
+            KeyCode::Up => add_key!(output, "Up"),
+        };
+
+        output
+    }
+}
+
 #[derive(Deserialize)]
 pub struct Keybinding {
     bindings: Vec<Binding>,
@@ -402,6 +481,8 @@ pub struct GlobalKeybindings {
 
     pub toggle_search_language_selection: Keybinding,
     pub toggle_logger: Keybinding,
+
+    pub help: Keybinding,
 }
 
 pub struct SearchKeybindings {
@@ -509,6 +590,8 @@ impl Config {
 
                     toggle_search_language_selection: keybinding!([KeyCode::F(2);]),
                     toggle_logger: keybinding!([KeyCode::Char('l');]),
+
+                    help: keybinding!([KeyCode::Char('?');]),
                 },
                 search: SearchKeybindings {
                     continue_search: keybinding!([KeyCode::Char('c');]),
