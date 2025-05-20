@@ -5,7 +5,6 @@ use ratatui::{
     style::Style,
     widgets::{Clear, Paragraph, Wrap},
 };
-use tui_input::Input;
 
 use crate::{
     action::{Action, ActionResult},
