@@ -18,12 +18,9 @@ use super::Component;
 
 const BINDINGS_TEXT: &'static str = include_str!("../../docs/docs/configuration/keybindings.md");
 
-#[allow(unused)]
 pub struct HelpPopupComponent {
-    input: Input,
     line: u16,
-    col: u16,
-    // focus: u8,
+
     config: Arc<Config>,
     theme: Arc<Theme>,
 }
@@ -31,9 +28,7 @@ pub struct HelpPopupComponent {
 impl HelpPopupComponent {
     pub fn new(config: Arc<Config>, theme: Arc<Theme> /* , bindings:Keybindings */) -> Self {
         Self {
-            input: Input::default(),
             line: 0,
-            col: 0,
 
             config,
             theme,
