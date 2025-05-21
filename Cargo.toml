@@ -39,6 +39,7 @@ tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 tui-input = "0.9"
 tui-logger = { version = "0.11.1", default-features = false, features = ["crossterm", "tracing-support"] }
 bitflags = { version = "2.6.0", features = ["serde"] }
+markdown = "1.0.0"
 
 [dependencies.wiki-api]
 path = "wiki-api"

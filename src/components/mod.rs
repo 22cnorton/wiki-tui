@@ -21,6 +21,7 @@ pub mod page_viewer;
 pub mod search;
 pub mod search_bar;
 pub mod search_language_popup;
+pub mod markdown_paragraph;
 
 #[macro_export]
 macro_rules! key_event {
