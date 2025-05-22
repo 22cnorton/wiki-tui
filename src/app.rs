@@ -7,7 +7,6 @@ use ratatui::{
     style::Style,
     widgets::Block,
 };
-use tracing::warn;
 
 use tokio::sync::mpsc;
 
@@ -28,7 +27,7 @@ use crate::{
     terminal::Frame,
 };
 
-#[derive(Clone, Copy,PartialEq, Eq,Default,Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 enum Context {
     #[default]
     Search,
@@ -127,10 +126,6 @@ impl Component for AppComponent {
         let result = match self.context {
             Context::Search => self.search.handle_key_events(key),
             Context::Page => self.page.handle_key_events(key),
-            _ => {
-                warn!("unknown context");
-                ActionResult::Ignored
-            }
         };
 
         if result.is_consumed() {
@@ -247,10 +242,6 @@ impl Component for AppComponent {
                 let result = match self.context {
                     Context::Search => self.search.update(action.clone()),
                     Context::Page => self.page.update(action.clone()),
-                    _ => {
-                        warn!("unknown context");
-                        return ActionResult::Ignored;
-                    }
                 };
                 if result.is_consumed() {
                     return result;
@@ -298,7 +289,6 @@ impl Component for AppComponent {
         match self.context {
             Context::Search => self.search.render(f, area),
             Context::Page => self.page.render(f, area),
-            _ => warn!("unknown context"),
         }
 
         if let Some(ref mut popup) = self.popups.last_mut() {
