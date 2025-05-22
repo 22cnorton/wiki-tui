@@ -78,3 +78,10 @@ pub trait Component {
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect);
 }
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+enum Focus {
+    #[default]
+    Input,
+    List,
+}

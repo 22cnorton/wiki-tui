@@ -16,14 +16,11 @@ use crate::{
     ui::{centered_rect, StatefulList},
 };
 
-use super::Component;
-
-const FOCUS_INPUT: u8 = 0;
-const FOCUS_LIST: u8 = 1;
+use super::{Component, Focus};
 
 pub struct SearchLanguageSelectionComponent {
     input: Input,
-    focus: u8,
+    focus: Focus,
     list: StatefulList<Language>,
 
     config: Arc<Config>,
@@ -35,7 +32,7 @@ impl SearchLanguageSelectionComponent {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(Vec::new()),
-            focus: 0,
+            focus: Focus::default(),
 
             config,
             theme,
@@ -86,24 +83,23 @@ impl Component for SearchLanguageSelectionComponent {
 
         match key.code {
             KeyCode::Tab | KeyCode::BackTab => {
-                if self.focus == FOCUS_INPUT {
-                    self.focus = FOCUS_LIST;
-                } else if self.focus == FOCUS_LIST {
-                    self.focus = FOCUS_INPUT;
-                }
+                self.focus = match self.focus {
+                    Focus::Input => Focus::List,
+                    Focus::List => Focus::Input,
+                };
 
-                tracing::debug!("focus now: '{}'", self.focus);
+                tracing::debug!("focus now: '{:?}'", self.focus);
 
                 ActionResult::consumed()
             }
-            KeyCode::Char('i') if self.focus == FOCUS_LIST => {
-                self.focus = FOCUS_INPUT;
+            KeyCode::Char('i') if self.focus == Focus::List => {
+                self.focus = Focus::Input;
                 ActionResult::consumed()
             }
 
             KeyCode::F(2) => Action::PopPopup.into(),
 
-            _ if self.focus == FOCUS_INPUT => {
+            _ if self.focus == Focus::Input => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
                 self.update_list();
                 ActionResult::consumed()
@@ -167,7 +163,7 @@ impl Component for SearchLanguageSelectionComponent {
             .scroll((0, scroll as u16));
         f.render_widget(input_widget, input_area);
 
-        if self.focus == FOCUS_INPUT {
+        if self.focus == Focus::Input {
             f.set_cursor(
                 input_area.x + (cursor.max(scroll) - scroll) as u16,
                 input_area.y,
@@ -179,7 +175,7 @@ impl Component for SearchLanguageSelectionComponent {
             .get_items()
             .iter()
             .map(|x| ListItem::new(x.name().to_owned()).fg(self.theme.fg));
-        let list_widget = List::new(list_items).highlight_style(if self.focus == FOCUS_LIST {
+        let list_widget = List::new(list_items).highlight_style(if self.focus == Focus::List {
             Style::default()
                 .fg(self.theme.selected_fg)
                 .bg(self.theme.selected_bg)
