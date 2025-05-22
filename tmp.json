@@ -1,7 +1,3 @@
-use wiki_api_macros::parse_languages;
-
-parse_languages!(
-    r#"
 {
     "sitematrix": {
         "count": 1051,
@@ -784,12 +780,7 @@ parse_languages!(
             "code": "be-x-old",
             "name": "беларуская (тарашкевіца)",
             "site": [
-                {
-                    "url": "https://be-x-old.wikipedia.org",
-                    "dbname": "be_x_oldwiki",
-                    "code": "wiki",
-                    "sitename": "Вікіпэдыя"
-                }
+
             ],
             "dir": "ltr",
             "localname": "Belarusian (Taraškievica orthography)"
@@ -8641,5 +8632,3 @@ parse_languages!(
         }
     }
 }
-"#
-);
