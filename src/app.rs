@@ -28,8 +28,12 @@ use crate::{
     terminal::Frame,
 };
 
-const CONTEXT_SEARCH: u8 = 0;
-const CONTEXT_PAGE: u8 = 1;
+#[derive(Clone, Copy,PartialEq, Eq,Default,Debug)]
+enum Context {
+    #[default]
+    Search,
+    Page,
+}
 
 #[derive(Default)]
 pub struct AppComponent {
@@ -45,14 +49,14 @@ pub struct AppComponent {
     config: Arc<Config>,
     theme: Arc<Theme>,
 
-    context: u8,
-    prev_context: u8,
+    context: Context,
+    prev_context: Context,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
 
 impl AppComponent {
-    fn switch_context(&mut self, context: u8) {
+    fn switch_context(&mut self, context: Context) {
         self.prev_context = context;
         std::mem::swap(&mut self.prev_context, &mut self.context);
     }
@@ -121,8 +125,8 @@ impl Component for AppComponent {
         }
 
         let result = match self.context {
-            CONTEXT_SEARCH => self.search.handle_key_events(key),
-            CONTEXT_PAGE => self.page.handle_key_events(key),
+            Context::Search => self.search.handle_key_events(key),
+            Context::Page => self.page.handle_key_events(key),
             _ => {
                 warn!("unknown context");
                 ActionResult::Ignored
@@ -186,8 +190,8 @@ impl Component for AppComponent {
             Action::ToggleShowLogger => self.is_logger = !self.is_logger,
             Action::ShowPageLanguageSelection => self.show_page_language(),
 
-            Action::SwitchContextSearch => self.switch_context(CONTEXT_SEARCH),
-            Action::SwitchContextPage => self.switch_context(CONTEXT_PAGE),
+            Action::SwitchContextSearch => self.switch_context(Context::Search),
+            Action::SwitchContextPage => self.switch_context(Context::Page),
             Action::SwitchPreviousContext => self.switch_context(self.prev_context),
 
             Action::EnterSearchBar => self.search_bar.is_focussed = true,
@@ -241,8 +245,8 @@ impl Component for AppComponent {
                 }
 
                 let result = match self.context {
-                    CONTEXT_SEARCH => self.search.update(action.clone()),
-                    CONTEXT_PAGE => self.page.update(action.clone()),
+                    Context::Search => self.search.update(action.clone()),
+                    Context::Page => self.page.update(action.clone()),
                     _ => {
                         warn!("unknown context");
                         return ActionResult::Ignored;
@@ -268,7 +272,7 @@ impl Component for AppComponent {
         match self.page.current_page() {
             // always render the searchbar if its focussed
             Some(_) if self.search_bar.is_focussed => area = self.render_search_bar(f, area),
-            Some(page) if self.context == CONTEXT_PAGE => {
+            Some(page) if self.context == Context::Page => {
                 if !page.is_zen_mode()
                     || self
                         .config
@@ -292,8 +296,8 @@ impl Component for AppComponent {
         };
 
         match self.context {
-            CONTEXT_SEARCH => self.search.render(f, area),
-            CONTEXT_PAGE => self.page.render(f, area),
+            Context::Search => self.search.render(f, area),
+            Context::Page => self.page.render(f, area),
             _ => warn!("unknown context"),
         }
 
